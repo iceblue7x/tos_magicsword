@@ -1,0 +1,64 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>神魔之塔合成煉成練習器</title>
+  <link rel='stylesheet' href='assets/css/style.css' />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+  <h1 class="text-center">
+    神魔之塔
+    <br>
+    合成煉成練習器
+  </h1>
+
+  <div id="game-container">
+    <div id="stats-container">
+      <div id="move-counter">
+        <i class="fa-solid fa-shoe-prints"></i> 移動步數:
+        <span id="move-count">0</span>
+      </div>
+      <button id="reset-button"><i class="fa-solid fa-repeat"></i> 重新開始</button>
+    </div>
+
+    <div id="level5-counter">
+      <h3><i class="fa-solid fa-ranking-star"></i> 魔劍合成統計</h3>
+      <div class="counter-row">
+        <div class="color-counter">
+          <div class="color-indicator" style="background: linear-gradient(135deg, #89CFF0, #4A90E2);">水</div>
+          <span class="counter-value" id="count-0">0</span>
+        </div>
+        <div class="color-counter">
+          <div class="color-indicator" style="background: linear-gradient(135deg, #FF6B6B, #C92A2A);">火</div>
+          <span class="counter-value" id="count-1">0</span>
+        </div>
+        <div class="color-counter">
+          <div class="color-indicator" style="background: linear-gradient(135deg, #51CF66, #37B24D);">木</div>
+          <span class="counter-value" id="count-3">0</span>
+        </div>
+        <div class="color-counter">
+          <div class="color-indicator" style="background: linear-gradient(135deg, #FFD43B, #F59F00);">土</div>
+          <span class="counter-value" id="count-4">0</span>
+        </div>
+        <div class="color-counter">
+          <div class="color-indicator" style="background: linear-gradient(135deg, #B197FC, #7950F2);">雷</div>
+          <span class="counter-value" id="count-2">0</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="game-area">
+      <div class="outer-zone" id="outer-top"></div>
+      <div class="outer-zone" id="outer-left"></div>
+      <div class="outer-zone" id="outer-right"></div>
+      <div class="outer-zone" id="outer-bottom"></div>
+
+      <div id="grid"></div>
+    </div>
+  </div>
+
+  <script src="assets/js/main.js"></script>
+</body>
+</html>
