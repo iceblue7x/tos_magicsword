@@ -1,7 +1,12 @@
 /* 版面與主題色 */
+html {
+    margin: 0;
+    padding: 0;
+}
+
 body {
     margin: 0;
-    padding: 20px;
+    padding-top: 8px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -35,6 +40,7 @@ h1 {
     max-width: 100%;
     margin: 0 auto;
     display: block;
+    text-align: center;
 }
 
 /* 統計區與操作 */
@@ -251,36 +257,23 @@ h1 {
     opacity: 0.7;
 }
 
-/* 測試面板 */
-#tests {
-    margin-top: 16px;
-    background: rgba(255, 255, 255, 0.92);
-    border-radius: 12px;
-    padding: 12px;
-    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.2);
-}
 
-#tests h3 {
-    margin: 0 0 8px 0;
-    color: #2c3e50;
-}
+@media (max-width: 640px) {
+    #game-container {
+        padding: 8px;
+    }
 
-#tests button {
-    padding: 8px 12px;
-    border-radius: 8px;
-    border: 1px solid #c8d0e0;
-    background: #f5f7fb;
-    cursor: pointer;
-}
+    #level5-counter {
+        padding: 8px;
+    }
 
-#testLog {
-    margin-top: 8px;
-    white-space: pre-wrap;
-    max-height: 180px;
-    overflow: auto;
-    background: #0e1430;
-    color: #cfe1ff;
-    padding: 10px;
-    border-radius: 8px;
+    #grid {
+        grid-template-columns: repeat(6, 50px);
+    grid-template-rows: repeat(6, 50px);
+    }
+
+    .cell {
+        width: 50px;
+        height: 50px;
+    }    
 }
-  
