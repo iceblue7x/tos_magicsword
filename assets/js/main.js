@@ -331,13 +331,13 @@
             if (applyGravity()) {
                 changed = true;
                 renderGrid();
-                await sleep(120);
+                await sleep(300);
             }
 
             if (checkAndMerge()) {
                 changed = true;
                 renderGrid();
-                await sleep(120);
+                await sleep(300);
             }
         }
 
