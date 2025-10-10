@@ -10,6 +10,8 @@
     let isProcessing = false;
     let moveCount = 0;
     let level5Count = [0, 0, 0, 0, 0];
+    let dragState = null; // active drag metadata
+    const DRAG_THRESHOLD_PX = 24;
 
     const colorSchemes = [
         ["#", "#", "#", "#", "#"], // 佔位，實際用漸層字串（陣列索引 0 不使用）
@@ -202,6 +204,7 @@
                         ball.classList.add("selected");
                     }
 
+                    attachBallDragHandlers(ball, i, j);
                     cell.appendChild(ball);
                 }
 
@@ -268,6 +271,10 @@
     }
 
     function handleCellClick(row, col) {
+        processCellInteraction(row, col);
+    }
+
+    function processCellInteraction(row, col) {
         if (isProcessing) return;
 
         if (selectedBall === null) {
@@ -278,7 +285,6 @@
             return;
         }
 
-        // 再次點擊相同格：取消選取
         if (selectedBall.row === row && selectedBall.col === col) {
             selectedBall = null;
             renderGrid();
@@ -289,10 +295,97 @@
             moveBall(selectedBall.row, selectedBall.col, row, col);
             selectedBall = null;
         } else {
-            // 切換選取到另一顆球
             selectedBall = grid[row][col] ? { row, col } : null;
             renderGrid();
         }
+    }
+
+    function attachBallDragHandlers(ball, row, col) {
+        ball.addEventListener("click", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+        });
+
+        ball.addEventListener("pointerdown", (event) => {
+            if (isProcessing) return;
+            if (dragState) return;
+            event.preventDefault();
+            ball.setPointerCapture(event.pointerId);
+            dragState = {
+                pointerId: event.pointerId,
+                startRow: row,
+                startCol: col,
+                startX: event.clientX,
+                startY: event.clientY,
+                targetRow: row,
+                targetCol: col,
+                moved: false
+            };
+            ball.classList.add("dragging");
+        });
+
+        ball.addEventListener("pointermove", (event) => {
+            if (!dragState || dragState.pointerId !== event.pointerId) return;
+
+            const dx = event.clientX - dragState.startX;
+            const dy = event.clientY - dragState.startY;
+            ball.style.transform = `translate(${dx}px, ${dy}px)`;
+
+            const absDx = Math.abs(dx);
+            const absDy = Math.abs(dy);
+            const distance = Math.max(absDx, absDy);
+
+            if (distance < DRAG_THRESHOLD_PX) {
+                dragState.targetRow = dragState.startRow;
+                dragState.targetCol = dragState.startCol;
+                dragState.moved = false;
+                return;
+            }
+
+            dragState.moved = true;
+            if (absDx > absDy) {
+                dragState.targetRow = dragState.startRow;
+                dragState.targetCol = dragState.startCol + (dx > 0 ? 1 : -1);
+            } else {
+                dragState.targetRow = dragState.startRow + (dy > 0 ? 1 : -1);
+                dragState.targetCol = dragState.startCol;
+            }
+        });
+
+        const finishDrag = (event) => {
+            if (!dragState || dragState.pointerId !== event.pointerId) return;
+
+            try {
+                ball.releasePointerCapture(event.pointerId);
+            } catch (_) {
+                // ignore if capture was already released
+            }
+            ball.classList.remove("dragging");
+            ball.style.transform = "";
+
+            const { startRow, startCol, targetRow, targetCol, moved } = dragState;
+            dragState = null;
+
+            if (!moved) {
+                processCellInteraction(row, col);
+                return;
+            }
+
+            const dr = targetRow - startRow;
+            const dc = targetCol - startCol;
+            const isOutside =
+                targetRow < 0 || targetRow >= GRID_SIZE || targetCol < 0 || targetCol >= GRID_SIZE;
+
+            if ((Math.abs(dr) === 1 && dc === 0) || (Math.abs(dc) === 1 && dr === 0) || isOutside) {
+                selectedBall = null;
+                moveBall(startRow, startCol, targetRow, targetCol);
+            } else {
+                processCellInteraction(row, col);
+            }
+        };
+
+        ball.addEventListener("pointerup", finishDrag);
+        ball.addEventListener("pointercancel", finishDrag);
     }
 
     function isAdjacent(r1, c1, r2, c2) {

@@ -229,6 +229,7 @@ h1 {
     transition: transform 0.15s ease, box-shadow 0.15s ease;
     cursor: grab;
     user-select: none;
+    touch-action: none;
 }
 
 .ball:active {
@@ -242,6 +243,12 @@ h1 {
 
 .ball.max-level {
     box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+}
+
+.ball.dragging {
+    cursor: grabbing;
+    transition: none;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.4);
 }
 
 #info {
