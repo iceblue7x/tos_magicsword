@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
-  <h1 class="text-center">
+  <h1>
     神魔之塔
     <br>
     合成煉成練習器
@@ -21,6 +21,42 @@
         <span id="move-count">0</span>
       </div>
       <button id="reset-button"><i class="fa-solid fa-repeat"></i> 重新開始</button>
+    </div>
+    <div class="switch-container">
+      自訂盤面
+      <label class="switch">
+        <input type="checkbox">
+        <span class="slider round"></span>
+      </label>
+    </div>
+
+    <div class="ball-picker" style="display: none;">
+      <div class="color-counter">
+        <div class="color-counter active">
+          <div class="color-indicator" style="background: linear-gradient(135deg, #89CFF0, #4A90E2);">水</div>
+        </div>
+        <div class="color-counter">
+          <div class="color-indicator" style="background: linear-gradient(135deg, #FF6B6B, #C92A2A);">火</div>
+        </div>
+        <div class="color-counter">
+          <div class="color-indicator" style="background: linear-gradient(135deg, #51CF66, #37B24D);">木</div>
+        </div>
+        <div class="color-counter">
+          <div class="color-indicator" style="background: linear-gradient(135deg, #FFD43B, #F59F00);">土</div>
+        </div>
+        <div class="color-counter">
+          <div class="color-indicator" style="background: linear-gradient(135deg, #B197FC, #7950F2);">雷</div>
+        </div>
+
+        <select class="ball-level">
+          <option>1</option>
+          <option>2</option>
+          <option>2</option>
+          <option>4</option>
+          <option>5</option>
+        </select>
+      </div>
+      
     </div>
 
     <div id="level5-counter">
