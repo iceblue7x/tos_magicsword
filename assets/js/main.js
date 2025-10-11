@@ -12,6 +12,13 @@
     let level5Count = [0, 0, 0, 0, 0];
     let dragState = null; // active drag metadata
     const DRAG_THRESHOLD_PX = 24;
+    let isEditMode = false;
+    let editSelection = { color: 1, level: 1 };
+    let uiInitialized = false;
+    let modeSwitchInput = null;
+    let ballPickerElement = null;
+    let colorOptionButtons = [];
+    let levelSelect = null;
 
     const colorSchemes = [
         ["#", "#", "#", "#", "#"], // 佔位，實際用漸層字串（陣列索引 0 不使用）
@@ -30,13 +37,6 @@
             "linear-gradient(135deg, #A31616, #710000)"
         ],
         [
-            "linear-gradient(135deg, #B197FC, #7950F2)",
-            "linear-gradient(135deg, #9B7FE6, #6340D6)",
-            "linear-gradient(135deg, #8567D0, #4D30BA)",
-            "linear-gradient(135deg, #6F4FBA, #37209E)",
-            "linear-gradient(135deg, #5937A4, #211082)"
-        ],
-        [
             "linear-gradient(135deg, #51CF66, #37B24D)",
             "linear-gradient(135deg, #3FB950, #2A9C3A)",
             "linear-gradient(135deg, #2DA33A, #1D8627)",
@@ -49,7 +49,14 @@
             "linear-gradient(135deg, #D3A80F, #C97300)",
             "linear-gradient(135deg, #BD9200, #B35D00)",
             "linear-gradient(135deg, #A77C00, #9D4700)"
-        ]
+        ],
+        [
+            "linear-gradient(135deg, #B197FC, #7950F2)",
+            "linear-gradient(135deg, #9B7FE6, #6340D6)",
+            "linear-gradient(135deg, #8567D0, #4D30BA)",
+            "linear-gradient(135deg, #6F4FBA, #37209E)",
+            "linear-gradient(135deg, #5937A4, #211082)"
+        ],
     ];
 
     function getBallColor(color, level) {
@@ -166,8 +173,129 @@
         moveCount = 0;
         level5Count = [0, 0, 0, 0, 0];
         selectedBall = null;
+        if (!uiInitialized) {
+            initializeUI();
+            uiInitialized = true;
+        }
+        updateModeUI();
         updateStats();
         renderGrid();
+    }
+
+    function initializeUI() {
+        modeSwitchInput = document.querySelector(".switch-container .switch input[type='checkbox']");
+        ballPickerElement = document.querySelector(".ball-picker");
+
+        if (modeSwitchInput) {
+            modeSwitchInput.addEventListener("change", () => {
+                if (isProcessing) {
+                    modeSwitchInput.checked = isEditMode;
+                    return;
+                }
+                setEditMode(modeSwitchInput.checked);
+            });
+        }
+
+        setupColorPicker();
+        updateModeUI();
+    }
+
+    function setupColorPicker() {
+        if (!ballPickerElement) return;
+
+        const indicators = ballPickerElement.querySelectorAll(".color-indicator");
+        colorOptionButtons = [];
+        indicators.forEach((indicator, index) => {
+            const parentCounter = indicator.closest(".color-counter");
+            if (!parentCounter) return;
+            const colorIndex = index + 1;
+            parentCounter.dataset.color = String(colorIndex);
+            parentCounter.addEventListener("click", () => {
+                setEditColor(colorIndex);
+            });
+            colorOptionButtons.push(parentCounter);
+        });
+
+        levelSelect = ballPickerElement.querySelector(".ball-level");
+        if (levelSelect) {
+            levelSelect.addEventListener("change", () => {
+                const rawValue = levelSelect.value || levelSelect.options[levelSelect.selectedIndex]?.textContent || "";
+                const nextLevel = Number(rawValue);
+                if (!Number.isNaN(nextLevel)) {
+                    setEditLevel(nextLevel);
+                }
+            });
+        }
+
+        setEditColor(editSelection.color);
+        setEditLevel(editSelection.level);
+    }
+
+    function setEditMode(enabled) {
+        if (isEditMode === enabled) {
+            updateModeUI();
+            return;
+        }
+        isEditMode = enabled;
+        if (modeSwitchInput && modeSwitchInput.checked !== enabled) {
+            modeSwitchInput.checked = enabled;
+        }
+        selectedBall = null;
+        dragState = null;
+        isProcessing = false;
+        updateModeUI();
+        renderGrid();
+    }
+
+    function updateModeUI() {
+        if (modeSwitchInput) {
+            modeSwitchInput.checked = isEditMode;
+        }
+        if (ballPickerElement) {
+            ballPickerElement.style.display = isEditMode ? "" : "none";
+        }
+    }
+
+    function applyEditorSelection(row, col) {
+        if (row < 0 || row >= GRID_SIZE || col < 0 || col >= GRID_SIZE) return;
+        isProcessing = false;
+        grid[row][col] = { color: editSelection.color, level: editSelection.level };
+        selectedBall = null;
+        dragState = null;
+        recalculateLevel5Count();
+        updateStats();
+        renderGrid();
+    }
+
+    function recalculateLevel5Count() {
+        level5Count = [0, 0, 0, 0, 0];
+        for (let r = 0; r < GRID_SIZE; r++) {
+            for (let c = 0; c < GRID_SIZE; c++) {
+                const cell = grid[r][c];
+                if (cell && cell.level === MAX_LEVEL) {
+                    const idx = Math.max(0, Math.min(COLORS - 1, (cell.color || 1) - 1));
+                    level5Count[idx] = (level5Count[idx] || 0) + 1;
+                }
+            }
+        }
+    }
+
+    function setEditColor(color) {
+        if (typeof color !== "number" || color < 1 || color > COLORS) return;
+        editSelection = { ...editSelection, color };
+        colorOptionButtons.forEach((btn) => {
+            const btnColor = Number(btn.dataset.color);
+            btn.classList.toggle("active", btnColor === color);
+        });
+    }
+
+    function setEditLevel(level) {
+        if (typeof level !== "number" || Number.isNaN(level)) return;
+        const clamped = Math.min(Math.max(1, level), MAX_LEVEL);
+        editSelection = { ...editSelection, level: clamped };
+        if (levelSelect && Number(levelSelect.value) !== clamped) {
+            levelSelect.value = String(clamped);
+        }
     }
 
     function updateStats() {
@@ -204,7 +332,9 @@
                         ball.classList.add("selected");
                     }
 
-                    attachBallDragHandlers(ball, i, j);
+                    if (!isEditMode) {
+                        attachBallDragHandlers(ball, i, j);
+                    }
                     cell.appendChild(ball);
                 }
 
@@ -218,7 +348,9 @@
         const zones = ["outer-top", "outer-bottom", "outer-left", "outer-right"];
         zones.forEach((id) => {
             const z = document.getElementById(id);
-            if (selectedBall && isEdgeBall(selectedBall.row, selectedBall.col, id)) {
+            if (isEditMode) {
+                z.classList.remove("active");
+            } else if (selectedBall && isEdgeBall(selectedBall.row, selectedBall.col, id)) {
                 z.classList.add("active");
             } else {
                 z.classList.remove("active");
@@ -256,7 +388,7 @@
     });
 
     function handleOuterClick(row, col) {
-        if (!selectedBall || isProcessing) return;
+        if (isEditMode || !selectedBall || isProcessing) return;
 
         const valid =
             (row === -1 && selectedBall.row === 0) ||
@@ -275,6 +407,11 @@
     }
 
     function processCellInteraction(row, col) {
+        if (isEditMode) {
+            applyEditorSelection(row, col);
+            return;
+        }
+
         if (isProcessing) return;
 
         if (selectedBall === null) {
@@ -302,11 +439,13 @@
 
     function attachBallDragHandlers(ball, row, col) {
         ball.addEventListener("click", (event) => {
+            if (isEditMode) return;
             event.preventDefault();
             event.stopPropagation();
         });
 
         ball.addEventListener("pointerdown", (event) => {
+            if (isEditMode) return;
             if (isProcessing) return;
             if (dragState) return;
             event.preventDefault();
@@ -325,6 +464,7 @@
         });
 
         ball.addEventListener("pointermove", (event) => {
+            if (isEditMode) return;
             if (!dragState || dragState.pointerId !== event.pointerId) return;
 
             const dx = event.clientX - dragState.startX;
@@ -353,6 +493,7 @@
         });
 
         const finishDrag = (event) => {
+            if (isEditMode) return;
             if (!dragState || dragState.pointerId !== event.pointerId) return;
 
             try {
@@ -395,6 +536,7 @@
     }
 
     function moveBall(fr, fc, tr, tc) {
+        if (isEditMode) return;
         isProcessing = true;
         moveCount++;
         updateStats();
